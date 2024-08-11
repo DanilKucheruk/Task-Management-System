@@ -4,6 +4,7 @@
 Чобы запустить приложение следуйте этим инструкциям:
 
 1. Скачайте репозиторий с GitHub, содержащий файлы Dockerfile и docker-compose.yml.
+
 `git clone https://github.com/DanilKucheruk/Task-Management-System`
 
 2. Убедитесь, что у вас установлен Docker на вашем компьютере. Если Docker не установлен, вы можете скачать его с официального сайта Docker.
