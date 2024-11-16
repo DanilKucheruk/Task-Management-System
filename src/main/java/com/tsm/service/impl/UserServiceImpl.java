@@ -15,6 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -42,11 +44,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         LOGGER.debug("Request to load user by email: {}", email);
+    
         return userRepository.findByEmail(email)
-                .map(user -> new org.springframework.security.core.userdetails.User(
-                        user.getEmail(),
-                        user.getPassword(),
-                        Collections.emptyList()))
+                .map(user -> {
+                    GrantedAuthority authority = new SimpleGrantedAuthority(user.getRole().name()); // Одиночная роль
+                    List<GrantedAuthority> authorities = Collections.singletonList(authority);
+    
+                    return new org.springframework.security.core.userdetails.User(
+                            user.getEmail(),
+                            user.getPassword(),
+                            authorities);
+                })
                 .orElseThrow(() -> new UsernameNotFoundException(
                         "Failed to retrieve user with email: " + email));
     }

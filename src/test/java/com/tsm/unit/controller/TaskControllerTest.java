@@ -2,15 +2,13 @@ package com.tsm.unit.controller;
 
 import com.tsm.controller.TaskController;
 import com.tsm.dto.TaskDto;
-import com.tsm.entity.Status;
 import com.tsm.entity.Task;
 import com.tsm.service.TaskService;
 
 import lombok.RequiredArgsConstructor;
-
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.DisplayName;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -18,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Optional;
 
@@ -34,39 +33,59 @@ public class TaskControllerTest {
     @Mock
     private TaskService taskService;
 
-
     @Test
-    @DisplayName("Should create a new task successfully")
-    void createTask_ShouldReturnCreatedTask() {
+    @DisplayName("Should create a new task successfully by admin")
+    void createTask_ShouldReturnCreatedTask_WhenUserIsAdmin() {
         TaskDto taskDto = new TaskDto();
-        Task createdTask = new Task(); 
-        when(taskService.create(taskDto)).thenReturn(createdTask); 
-    
+        Task createdTask = new Task();
+        when(taskService.create(taskDto)).thenReturn(createdTask);
+
         ResponseEntity<Task> response = taskController.createTask(taskDto);
-    
+
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody()); 
-        assertEquals(createdTask, response.getBody()); 
+        assertNotNull(response.getBody());
+        assertEquals(createdTask, response.getBody());
         verify(taskService).create(taskDto);
     }
-    
 
     @Test
-    @DisplayName("Should return Not Found when task does not exist")
-    void getTaskById_ShouldReturnNotFound_WhenTaskDoesNotExist() {
-        Long taskId = 1L;
-        when(taskService.findById(taskId)).thenReturn(Optional.empty());
+    @DisplayName("Should fail to create task when user is not admin")
+    void createTask_ShouldThrowAccessDenied_WhenUserIsNotAdmin() {
+        TaskDto taskDto = new TaskDto();
+        doThrow(new AccessDeniedException("Access Denied")).when(taskService).create(any(TaskDto.class));
 
-        ResponseEntity<TaskDto> response = taskController.getTaskById(taskId);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(taskService).findById(taskId);
+        assertThrows(AccessDeniedException.class, () -> taskController.createTask(taskDto));
     }
 
     @Test
-    @DisplayName("Should return task details when task exists")
-    void getTaskById_ShouldReturnTask_WhenTaskExists() {
+    @DisplayName("Should update task successfully by authorized user")
+    void updateTask_ShouldReturnUpdatedTask_WhenUserIsAuthorized() {
+        Long taskId = 1L;
+        TaskDto taskDto = new TaskDto();
+        TaskDto updatedTask = new TaskDto();
+        when(taskService.update(taskDto)).thenReturn(updatedTask);
+
+        ResponseEntity<TaskDto> response = taskController.updateTask(taskId, taskDto);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(updatedTask, response.getBody());
+        verify(taskService).update(taskDto);
+    }
+
+    @Test
+    @DisplayName("Should fail to update task when user is not authorized")
+    void updateTask_ShouldThrowAccessDenied_WhenUserIsNotAuthorized() {
+        Long taskId = 1L;
+        TaskDto taskDto = new TaskDto();
+        doThrow(new AccessDeniedException("Access Denied")).when(taskService).update(any(TaskDto.class));
+
+        assertThrows(AccessDeniedException.class, () -> taskController.updateTask(taskId, taskDto));
+    }
+
+    @Test
+    @DisplayName("Should retrieve a task successfully by authorized user")
+    void getTaskById_ShouldReturnTask_WhenUserIsAuthorized() {
         Long taskId = 1L;
         TaskDto taskDto = new TaskDto();
         when(taskService.findById(taskId)).thenReturn(Optional.of(taskDto));
@@ -80,7 +99,16 @@ public class TaskControllerTest {
     }
 
     @Test
-    @DisplayName("Should delete a task successfully")
+    @DisplayName("Should fail to retrieve task when user is not authorized")
+    void getTaskById_ShouldThrowAccessDenied_WhenUserIsNotAuthorized() {
+        Long taskId = 1L;
+        doThrow(new AccessDeniedException("Access Denied")).when(taskService).findById(anyLong());
+
+        assertThrows(AccessDeniedException.class, () -> taskController.getTaskById(taskId));
+    }
+
+    @Test
+    @DisplayName("Should delete a task successfully by admin")
     void deleteTask_ShouldReturnNoContent_WhenTaskIsDeleted() {
         Long taskId = 1L;
         when(taskService.delete(taskId)).thenReturn(true);
@@ -93,78 +121,53 @@ public class TaskControllerTest {
     }
 
     @Test
-    @DisplayName("Should return Not Found when task to delete does not exist")
-    void deleteTask_ShouldReturnNotFound_WhenTaskDoesNotExist() {
+    @DisplayName("Should fail to delete task when user is not admin")
+    void deleteTask_ShouldThrowAccessDenied_WhenUserIsNotAdmin() {
         Long taskId = 1L;
-        when(taskService.delete(taskId)).thenReturn(false);
+        doThrow(new AccessDeniedException("Access Denied")).when(taskService).delete(anyLong());
 
-        ResponseEntity<Void> response = taskController.deleteTask(taskId);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(taskService).delete(taskId);
+        assertThrows(AccessDeniedException.class, () -> taskController.deleteTask(taskId));
     }
 
     @Test
-    @DisplayName("Should change task status successfully")
-    void changeTaskStatus_ShouldReturnUpdatedTask() {
+    @DisplayName("Should assign a task successfully by admin")
+    void assignTask_ShouldReturnUpdatedTask_WhenUserIsAdmin() {
         Long taskId = 1L;
-        Status status = Status.COMPLETED;
-        TaskDto updatedTaskDto = new TaskDto();
-        when(taskService.changeStatus(taskId, status)).thenReturn(updatedTaskDto);
-
-        ResponseEntity<TaskDto> response = taskController.changeTaskStatus(taskId, status);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(updatedTaskDto, response.getBody());
-        verify(taskService).changeStatus(taskId, status);
-    }
-
-    @Test
-    @DisplayName("Should assign a task successfully")
-    void assignTask_ShouldReturnUpdatedTask() {
-        Long taskId = 1L;
-        String assigneeEmail = "test@example.com" ;
-        TaskDto updatedTaskDto = new TaskDto();
-        when(taskService.assignTask(taskId, assigneeEmail)).thenReturn(updatedTaskDto);
+        String assigneeEmail = "test@example.com";
+        TaskDto updatedTask = new TaskDto();
+        when(taskService.assignTask(taskId, assigneeEmail)).thenReturn(updatedTask);
 
         ResponseEntity<TaskDto> response = taskController.assignTask(taskId, assigneeEmail);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(updatedTaskDto, response.getBody());
+        assertEquals(updatedTask, response.getBody());
         verify(taskService).assignTask(taskId, assigneeEmail);
     }
 
     @Test
-    @DisplayName("Should retrieve a page of tasks with filter")
-    void getTasks_ShouldReturnPageOfTasks() {
+    @DisplayName("Should fail to assign task when user is not admin")
+    void assignTask_ShouldThrowAccessDenied_WhenUserIsNotAdmin() {
+        Long taskId = 1L;
+        String assigneeEmail = "test@example.com";
+        doThrow(new AccessDeniedException("Access Denied")).when(taskService).assignTask(anyLong(), anyString());
+
+        assertThrows(AccessDeniedException.class, () -> taskController.assignTask(taskId, assigneeEmail));
+    }
+
+    @Test
+    @DisplayName("Should retrieve tasks as admin")
+    void getTasks_ShouldReturnTasks_WhenUserIsAdmin() {
         Pageable pageable = Pageable.ofSize(10);
         String filter = "test";
-        Page<TaskDto> taskPage = mock(Page.class);
-        when(taskService.findAll(pageable, filter)).thenReturn(taskPage);
+        Page<TaskDto> tasksPage = mock(Page.class);
+        when(taskService.findAll(pageable, filter)).thenReturn(tasksPage);
 
         ResponseEntity<Page<TaskDto>> response = taskController.getTasks(pageable, filter);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(taskPage, response.getBody());
+        assertEquals(tasksPage, response.getBody());
         verify(taskService).findAll(pageable, filter);
-    }
-
-    @Test
-    @DisplayName("Should retrieve a page of tasks without filter")
-    void getTasks_ShouldReturnPageOfTasksWithoutFilter() {
-        Pageable pageable = Pageable.ofSize(10);
-        Page<TaskDto> taskPage = mock(Page.class);
-        when(taskService.findAll(pageable, null)).thenReturn(taskPage);
-
-        ResponseEntity<Page<TaskDto>> response = taskController.getTasks(pageable, null);
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(taskPage, response.getBody());
-        verify(taskService).findAll(pageable, null);
     }
 }

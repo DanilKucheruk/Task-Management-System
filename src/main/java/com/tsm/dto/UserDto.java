@@ -19,4 +19,7 @@ public class UserDto {
 
     @Schema(description = "Password of the user", example = "password123")
     private String password;
+    
+    @Schema(description = "Role of the user", example = "ADMIN")
+    private String role;
 }

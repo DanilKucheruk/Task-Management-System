@@ -75,7 +75,8 @@ public class AuthenticationControllerIT extends IntegrationTestBase {
         String requestBody = """
                 {
                     "email": "testUser@test.com",
-                    "password": "test"
+                    "password": "test",
+                    "role": "ADMIN"
                 }
                     """;
 

@@ -10,4 +10,5 @@ public interface TaskSearchService {
     Page<TaskDto> findByAssignee(Long assigneeId, Pageable pageable);
     Page<TaskDto> findByStatus(String status, Pageable pageable);
     Page<TaskDto> findByPriority(String priority, Pageable pageable);
+    Page<TaskDto> findAll(Pageable pageable, String filter);
 }

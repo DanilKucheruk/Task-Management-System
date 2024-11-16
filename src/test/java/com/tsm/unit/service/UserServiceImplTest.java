@@ -22,6 +22,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.tsm.dto.RegistrationUserDto;
 import com.tsm.dto.UserDto;
+import com.tsm.entity.Role;
 import com.tsm.entity.User;
 import com.tsm.exceptions.user.UserAlreadyExistsException;
 import com.tsm.exceptions.user.UserCreationException;
@@ -51,6 +52,7 @@ public class UserServiceImplTest {
         User user = new User();
         user.setEmail("test@example.com");
         user.setPassword("password");
+        user.setRole(Role.ADMIN);
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
 
         UserDetails userDetails = userServiceImpl.loadUserByUsername("test@example.com");
@@ -75,7 +77,7 @@ public class UserServiceImplTest {
     @Test
     @DisplayName("Should create new user successfully")
     void create_ShouldReturnUser_WhenUserIsCreatedSuccessfully() {
-        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password");
+        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password", "ADMIN");
         User user = new User();
         user.setEmail("test@example.com");
         user.setPassword("password");
@@ -108,7 +110,7 @@ public class UserServiceImplTest {
     @Test
     @DisplayName("Should throw UserAlreadyExistsException when user with email already exists")
     void create_ShouldThrowUserAlreadyExistsException_WhenUserAlreadyExists() {
-        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password");
+        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password","ADMIN");
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.of(new User()));
 
         UserAlreadyExistsException exception = assertThrows(UserAlreadyExistsException.class, () -> {
@@ -121,7 +123,7 @@ public class UserServiceImplTest {
     @Test
     @DisplayName("Should throw UserCreationException when user creation fails")
     void create_ShouldThrowUserCreationException_WhenUserCreationFails() {
-        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password");
+        RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password","ADMIN");
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
         when(registrationUserMapper.map(userDto)).thenThrow(UserCreationException.class);
 

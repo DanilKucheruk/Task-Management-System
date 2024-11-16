@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,6 +48,18 @@ public class GlobalExceptionHandler {
         errorResponse.put("details", errors);
         errorResponse.put("timestamp", LocalDateTime.now());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        LOGGER.error("Access denied: {}", ex.getMessage());
+        Map<String, Object> errorResponse = new HashMap<>();
+        errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+        errorResponse.put("error", HttpStatus.FORBIDDEN.getReasonPhrase());
+        errorResponse.put("message", "You do not have the required role to access this resource.");
+        errorResponse.put("timestamp", LocalDateTime.now());
+        errorResponse.put("path", request.getDescription(false));
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     // @ExceptionHandler(Exception.class)

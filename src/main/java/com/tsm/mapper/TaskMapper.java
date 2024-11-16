@@ -25,9 +25,9 @@ public class TaskMapper implements Mapper<Task, TaskDto>{
         taskDto.setDescription(task.getDescription());
         taskDto.setStatus(task.getStatus());
         taskDto.setPriority(task.getPriority());
-        if (taskDto.getAssignee() != null) {
+        if (task.getAssignee() != null) {
             taskDto.setAssignee(userMapper.map(task.getAssignee()));
-        }
+        }        
         taskDto.setAuthor(userMapper.map(task.getAuthor()));
         taskDto.setComments(task.getComments() == null ? null : task.getComments().stream()
                 .map(commentMapper::map)

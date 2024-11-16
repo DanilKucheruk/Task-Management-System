@@ -38,7 +38,7 @@ class AuthenticationControllerTest {
 
     @Test
     public void createNewUser_ShouldReturnNewUser() {
-        RegistrationUserDto userDto = new RegistrationUserDto(9999L, "username", "password");
+        RegistrationUserDto userDto = new RegistrationUserDto(9999L, "username", "password","ADMIN");
         ResponseEntity<?> expectedResponse = ResponseEntity.ok().build();
         when(authService.createNewUser(userDto)).thenReturn(ResponseEntity.ok().build());
 
@@ -47,6 +47,4 @@ class AuthenticationControllerTest {
         assertEquals(expectedResponse, response);
         verify(authService, times(1)).createNewUser(userDto);
     }
-
-
-}
+} 

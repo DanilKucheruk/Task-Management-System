@@ -26,4 +26,8 @@ public class RegistrationUserDto {
     @NotBlank(message = "Password is mandatory")
     @Size(min = 4, message = "Password should be at least 4 characters")
     private String password;
+
+    @Schema(description = "Role for the new user", example = "ROLE_USER")
+    @NotBlank(message = "Role is mandatory")
+    private String role;
 }

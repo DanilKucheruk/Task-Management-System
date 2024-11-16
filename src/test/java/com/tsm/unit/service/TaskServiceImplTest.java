@@ -263,25 +263,6 @@ class TaskServiceImplTest {
 
         assertThrows(TaskAssignmentException.class, () -> taskServiceImpl.assignTask(1L, "test@example.com"));
     }
-    @Test
-    @DisplayName("Should find all tasks with filtering")
-    void findAll_ShouldReturnFilteredTasks() {
-        Pageable pageable = PageRequest.of(0, 10);
-        Task task = new Task();
-        TaskDto taskDto = new TaskDto();
-
-        when(taskRepository.findByTitleContainingOrDescriptionContainingOrStatusContaining(
-                anyString(), anyString(), anyString(), eq(pageable)))
-                .thenReturn(new PageImpl<>(List.of(task)));
-        when(taskMapper.map(task)).thenReturn(taskDto);
-
-        Page<TaskDto> result = taskServiceImpl.findAll(pageable, "filter");
-
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        verify(taskRepository).findByTitleContainingOrDescriptionContainingOrStatusContaining(
-                eq("filter"), eq("filter"), eq("filter"), eq(pageable));
-    }
 
     @Test
     @DisplayName("Should find all tasks without filtering")

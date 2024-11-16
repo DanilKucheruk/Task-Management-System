@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.tsm.dto.RegistrationUserDto;
+import com.tsm.entity.Role;
 import com.tsm.entity.User;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,7 @@ public class RegistrationUserMapper implements Mapper<RegistrationUserDto, User>
         user.setEmail(object.getEmail());
         Optional.ofNullable(object.getPassword()).filter(StringUtils::hasText)
         .map(passwordEncoder::encode).ifPresent(user::setPassword);
+        user.setRole(Role.valueOf(object.getRole()));
         return user;
     }
     

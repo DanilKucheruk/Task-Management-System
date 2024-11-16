@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class CommentController {
                      content = @Content(schema = @Schema(implementation = CommentDto.class))),
         @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
+    @PreAuthorize("hasRole('ROLE_ADMIN') or (hasRole('ROLE_USER') and @taskServiceImpl.canUserAccessTask(#taskId))")
     @PostMapping
     public ResponseEntity<CommentDto> addComment(
             @PathVariable Long taskId,
@@ -46,6 +48,7 @@ public class CommentController {
                      content = @Content(schema = @Schema(implementation = CommentDto.class))),
         @ApiResponse(responseCode = "404", description = "Task not found")
     })
+    @PreAuthorize("hasRole('ROLE_ADMIN') or (hasRole('ROLE_USER') and @taskServiceImpl.canUserAccessTask(#taskId))")
     @GetMapping
     public ResponseEntity<List<CommentDto>> getComments(@PathVariable Long taskId) {
         LOGGER.info("GET /tasks/{}/comments - Retrieving comments", taskId);
@@ -59,6 +62,7 @@ public class CommentController {
                      content = @Content(schema = @Schema(implementation = CommentDto.class))),
         @ApiResponse(responseCode = "404", description = "Comment not found")
     })
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable Long commentId,
@@ -73,6 +77,7 @@ public class CommentController {
         @ApiResponse(responseCode = "204", description = "Comment deleted successfully"),
         @ApiResponse(responseCode = "404", description = "Comment not found")
     })
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(@PathVariable Long commentId) {
         LOGGER.info("DELETE /tasks/comments/{} - Deleting comment", commentId);

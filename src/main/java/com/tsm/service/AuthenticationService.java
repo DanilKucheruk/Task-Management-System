@@ -13,6 +13,7 @@ import com.tsm.dto.AuthenticationRequest;
 import com.tsm.dto.AuthenticationResponse;
 import com.tsm.dto.RegistrationUserDto;
 import com.tsm.exceptions.user.AuthenticationException;
+import com.tsm.exceptions.user.UserNotFoundException;
 import com.tsm.util.JwtTokenUtils;
 
 import jakarta.validation.Valid;
@@ -35,7 +36,9 @@ public class AuthenticationService {
                     HttpStatus.UNAUTHORIZED);
         }
         UserDetails userDetails = userService.loadUserByUsername(authRequest.getEmail());
-        String token = jwtTokenUtils.generateToken(userDetails);
+        com.tsm.entity.User user = userService.findByEmail(authRequest.getEmail())
+        .orElseThrow(() -> new UserNotFoundException("User not found with email: " + authRequest.getEmail()));
+        String token = jwtTokenUtils.generateToken(userDetails,user.getRole());
         return ResponseEntity.ok(new AuthenticationResponse(token));
     }
 

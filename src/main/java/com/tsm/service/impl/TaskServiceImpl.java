@@ -5,6 +5,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -22,6 +23,7 @@ import com.tsm.mapper.TaskMapper;
 import com.tsm.mapper.UserMapper;
 import com.tsm.repository.TaskRepository;
 import com.tsm.repository.UserRepository;
+import com.tsm.repository.specification.TaskSpecification;
 import com.tsm.service.TaskService;
 
 import jakarta.transaction.Transactional;
@@ -136,14 +138,24 @@ public class TaskServiceImpl implements TaskService{
     
     @Override
     public Page<TaskDto> findAll(Pageable pageable, String filter) {
+        Specification<Task> spec = TaskSpecification.searchByFilter(filter); 
         Page<Task> tasks;
         if (StringUtils.hasText(filter)) {
-            tasks = taskRepository.findByTitleContainingOrDescriptionContainingOrStatusContaining(
-                    filter, filter, filter, pageable);
+            tasks = taskRepository.findAll(spec, pageable); 
         } else {
-            tasks = taskRepository.findAll(pageable);
+            tasks = taskRepository.findAll(pageable); 
         }
-
         return tasks.map(taskMapper::map);
     }    
+
+    @Override   
+    public boolean canUserAccessTask(Long taskId) {
+        TaskDto taskDto = findById(taskId).orElse(null);
+        if (taskDto != null && taskDto.getAssignee() != null) {
+            User currentUser = userService.getCurrentUser();
+            return currentUser.getEmail().equals(taskDto.getAssignee().getEmail());
+        }
+
+        return false;
+    }
 }

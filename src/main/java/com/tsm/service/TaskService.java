@@ -18,4 +18,5 @@ public interface TaskService {
     TaskDto changeStatus(Long id, Status status);
     TaskDto assignTask(Long taskId, String assigneeEmail);
     Page<TaskDto> findAll(Pageable pageable, String filter);
+    boolean canUserAccessTask(Long taskId);
 }

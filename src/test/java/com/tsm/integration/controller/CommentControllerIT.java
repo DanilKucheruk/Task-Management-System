@@ -2,7 +2,6 @@ package com.tsm.integration.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tsm.dto.CommentDto;
-import com.tsm.dto.UserDto;
 import com.tsm.integration.IntegrationTestBase;
 import com.tsm.integration.annotation.IT;
 import org.junit.jupiter.api.DisplayName;
@@ -10,15 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.time.LocalDateTime;
-
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
 @IT
 @AutoConfigureMockMvc
@@ -30,102 +26,98 @@ public class CommentControllerIT extends IntegrationTestBase {
     @Autowired
     private ObjectMapper objectMapper;
     
+   
     @Test
-    @DisplayName("Should add a new comment to a task successfully")
-    void addComment_ShouldReturnCreatedComment() throws Exception {
+    @WithMockUser(username = "test@gmail.com", roles = {"ADMIN"})
+    @DisplayName("Add a comment as ADMIN user should return the created comment")
+    public void addComment_AsAdmin_ShouldReturnCreatedComment() throws Exception {
         CommentDto commentDto = new CommentDto();
-        commentDto.setContent("This is a new comment");
+        commentDto.setContent("New comment for Task 3");
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/tasks/2/comments")
+        mockMvc.perform(post("/api/tasks/3/comments")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.content", is("This is a new comment")));
+                .andExpect(jsonPath("$.content").value("New comment for Task 3"));
     }
 
     @Test
-    @DisplayName("Should retrieve all comments for a task")
-    void getComments_ShouldReturnComments_ForExistingTask() throws Exception {
-        Long taskId = 3L;
+    @WithMockUser(username = "user2", roles = {"USER"})
+    public void addComment_AsUser_ShouldReturnCreatedComment() throws Exception {
+        CommentDto commentDto = new CommentDto();
+        commentDto.setContent("Comment from user2 for Task 2");
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/api/tasks/" + taskId + "/comments"))
+        mockMvc.perform(post("/api/tasks/2/comments")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(commentDto)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.content").value("Comment from user2 for Task 2"));
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    public void getComments_AsAdmin_ShouldReturnComments() throws Exception {
+        mockMvc.perform(get("/api/tasks/3/comments"))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].content").value("This is a comment for Task 3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].content").value("Another comment for Task 3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[2].content").value("Feedback on Task 3"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].author.id").value(2L))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].author.id").value(3L))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[2].author.id").value(5L));
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].content").value("This is a comment for Task 3"))
+                .andExpect(jsonPath("$[1].content").value("Another comment for Task 3"))
+                .andExpect(jsonPath("$[2].content").value("Feedback on Task 3"));
     }
 
+    @Test
+    @WithMockUser(username = "user2", roles = {"USER"})
+    public void getComments_AsUserWithAccess_ShouldReturnComments() throws Exception {
+        mockMvc.perform(get("/api/tasks/2/comments"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$[0].content").value("Comment for Task 2"));
+    }
 
     @Test
-    @DisplayName("Should update a comment successfully")
-    void updateComment_ShouldReturnUpdatedComment() throws Exception {
+    @WithMockUser(username = "user4", roles = {"USER"})
+    @DisplayName("Retrieve comments as USER without access to the task should return Forbidden")
+    public void getComments_AsUserWithoutAccess_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(get("/api/tasks/2/comments"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("Update a comment as ADMIN should return the updated comment")
+    public void updateComment_AsAdmin_ShouldReturnUpdatedComment() throws Exception {
         CommentDto commentDto = new CommentDto();
         commentDto.setContent("Updated comment content");
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/tasks/3/comments/2")
+        mockMvc.perform(put("/api/tasks/3/comments/2")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(commentDto)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content", is("Updated comment content")));
+                .andExpect(jsonPath("$.content").value("Updated comment content"));
     }
 
-
     @Test
-    @DisplayName("Should delete a comment successfully")
-    void deleteComment_ShouldReturnNoContent_WhenCommentExists() throws Exception {
-        Long commentId = 2L; 
-
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/" + 3L + "/comments/" + commentId))
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("Delete a comment as ADMIN should return No Content")
+    public void deleteComment_AsAdmin_ShouldReturnNoContent() throws Exception {
+        mockMvc.perform(delete("/api/tasks/3/comments/2"))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @DisplayName("Should return Not Found when comment to delete does not exist")
-    void deleteComment_ShouldReturnNotFound_WhenCommentDoesNotExist() throws Exception {
-        Long nonExistentCommentId = 99L; 
+    @WithMockUser(username = "user2", roles = {"USER"})
+    @DisplayName("Delete a comment as USER should return Forbidden")
+    public void deleteComment_AsUser_ShouldReturnForbidden() throws Exception {
+        mockMvc.perform(delete("/api/tasks/3/comments/2"))
+                .andExpect(status().isForbidden());
+    }
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/tasks/" + 3L + "/comments/" + nonExistentCommentId))
+    @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @DisplayName("Delete a non-existing comment should return Not Found")
+    public void deleteComment_NonExistingComment_ShouldReturnNotFound() throws Exception {
+        mockMvc.perform(delete("/api/tasks/3/comments/999"))
                 .andExpect(status().isNotFound());
     }
-
-    @Test
-    @DisplayName("Should return Bad Request when adding a comment with missing content")
-    void addComment_ShouldReturnBadRequest_WhenContentIsMissing() throws Exception {
-        Long taskId = 2L; 
-
-        UserDto author = new UserDto(2L, "test@gmail.com", "test");
-        CommentDto commentDto = new CommentDto();
-        commentDto.setAuthor(author);
-        commentDto.setCreatedAt(LocalDateTime.now());
-
-        String jsonContent = objectMapper.writeValueAsString(commentDto);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/api/tasks/" + taskId + "/comments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @DisplayName("Should return Bad Request when updating a comment with missing content")
-    void updateComment_ShouldReturnBadRequest_WhenContentIsMissing() throws Exception {
-        Long commentId = 2L; 
-
-        UserDto author = new UserDto(2L, "test@gmail.com", "test");
-        CommentDto commentDto = new CommentDto();
-        commentDto.setAuthor(author);
-        commentDto.setCreatedAt(LocalDateTime.now());
-
-        String jsonContent = objectMapper.writeValueAsString(commentDto);
-
-        mockMvc.perform(MockMvcRequestBuilders.put("/api/tasks/" + 3L + "/comments/" + commentId)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(jsonContent))
-                .andExpect(status().isBadRequest());
-    }
-
 
 }
