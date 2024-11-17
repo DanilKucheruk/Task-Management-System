@@ -62,15 +62,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
-    // @ExceptionHandler(Exception.class)
-    // public ResponseEntity<Map<String, Object>> handleAllExceptions(Exception ex, WebRequest request) {
-    //     LOGGER.error("Error: {}", ex.getMessage());
-    //     Map<String, Object> errorResponse = new HashMap<>();
-    //     errorResponse.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
-    //     errorResponse.put("error", HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
-    //     errorResponse.put("message", "An unexpected error occurred. Please try again later.");
-    //     errorResponse.put("timestamp", LocalDateTime.now());
-    //     errorResponse.put("path", request.getDescription(false));
-    //     return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    // }
 }
