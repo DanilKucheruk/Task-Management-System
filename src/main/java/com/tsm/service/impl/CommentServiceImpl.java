@@ -43,13 +43,13 @@ public class CommentServiceImpl implements CommentService {
 
         User author = userService.getCurrentUser();
 
-        Comment comment = commentMapper.mapToEntity(commentDto);
+        Comment comment = commentMapper.commentDtoToComment(commentDto);
         comment.setTask(task);
         comment.setAuthor(author);
 
         Comment savedComment = commentRepository.save(comment);
 
-        return commentMapper.map(savedComment);
+        return commentMapper.commentToCommentDto(savedComment);
     }
 
     @Override
@@ -59,7 +59,7 @@ public class CommentServiceImpl implements CommentService {
         List<Comment> comments = commentRepository.findByTaskId(taskId);
         
         return comments.stream()
-                .map(commentMapper::map)
+                .map(commentMapper::commentToCommentDto)
                 .collect(Collectors.toList());
     }
 
@@ -75,7 +75,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment updatedComment = commentRepository.save(existingComment);
 
-        return commentMapper.map(updatedComment);
+        return commentMapper.commentToCommentDto(updatedComment);
     }
 
     @Override

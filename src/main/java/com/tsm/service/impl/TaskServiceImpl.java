@@ -47,8 +47,8 @@ public class TaskServiceImpl implements TaskService{
         LOGGER.info("Creating a new task: {}", taskDto);
         return Optional.of(taskDto)
                 .map(dto -> {
-                    dto.setAuthor(userMapper.map(userService.getCurrentUser()));
-                    return taskMapper.mapToEntity(dto);
+                    dto.setAuthor(userMapper.userToUserDto(userService.getCurrentUser()));
+                    return taskMapper.taskDtoToTask(dto);
                 })
                 .map(taskRepository::save)
                 .orElseThrow(() -> new TaskCreationException("Failed to retrieve task with id: " + taskDto.getId()));
@@ -78,14 +78,14 @@ public class TaskServiceImpl implements TaskService{
     
                     return taskRepository.save(existingTask);
                 })
-                .map(taskMapper::map)
+                .map(taskMapper::taskToTaskDto)
                 .orElseThrow(() -> new TaskCreationException("Update failed, no task found"));
     }
 
     @Override
     public Optional<TaskDto> findById(Long id) {
         LOGGER.debug("Finding task by id {}", id);
-        return taskRepository.findById(id).map(taskMapper::map);
+        return taskRepository.findById(id).map(taskMapper::taskToTaskDto);
     }
 
     @Override
@@ -110,7 +110,7 @@ public class TaskServiceImpl implements TaskService{
         task.setStatus(status);
         Task updatedTask = taskRepository.save(task);
 
-        return taskMapper.map(updatedTask);
+        return taskMapper.taskToTaskDto(updatedTask);
     }
 
     @Override
@@ -132,7 +132,7 @@ public class TaskServiceImpl implements TaskService{
 
         Task updatedTask = taskRepository.save(task);
 
-        return taskMapper.map(updatedTask);
+        return taskMapper.taskToTaskDto(updatedTask);
     }
 
     
@@ -145,7 +145,7 @@ public class TaskServiceImpl implements TaskService{
         } else {
             tasks = taskRepository.findAll(pageable); 
         }
-        return tasks.map(taskMapper::map);
+        return tasks.map(taskMapper::taskToTaskDto);
     }    
 
     @Override   

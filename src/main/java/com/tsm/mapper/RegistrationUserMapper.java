@@ -1,31 +1,35 @@
 package com.tsm.mapper;
 
-import java.util.Optional;
-
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
+import org.mapstruct.factory.Mappers;
 
 import com.tsm.dto.RegistrationUserDto;
 import com.tsm.entity.Role;
 import com.tsm.entity.User;
 
-import lombok.RequiredArgsConstructor;
+@Mapper(componentModel = "spring")
+public interface RegistrationUserMapper {
 
+    RegistrationUserMapper INSTANCE = Mappers.getMapper(RegistrationUserMapper.class);
 
-@Component
-@RequiredArgsConstructor
-public class RegistrationUserMapper implements Mapper<RegistrationUserDto, User>{
-    private final BCryptPasswordEncoder passwordEncoder;
+    @Mapping(source = "password", target = "password", qualifiedByName = "encodePassword")
+    @Mapping(source = "role", target = "role", qualifiedByName = "stringToRole")
+    User registrationUserDtoToUser(RegistrationUserDto registrationUserDto);
 
-    @Override
-    public User map(RegistrationUserDto object) {
-        User user = new User();
-        user.setEmail(object.getEmail());
-        Optional.ofNullable(object.getPassword()).filter(StringUtils::hasText)
-        .map(passwordEncoder::encode).ifPresent(user::setPassword);
-        user.setRole(Role.valueOf(object.getRole()));
-        return user;
+    @Named("encodePassword")
+    static String encodePassword(String password) {
+        if (password != null && !password.trim().isEmpty()) {
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            return passwordEncoder.encode(password);
+        }
+        return null;
     }
-    
+
+    @Named("stringToRole")
+    static Role stringToRole(String role) {
+        return Role.valueOf(role);
+    }
 }

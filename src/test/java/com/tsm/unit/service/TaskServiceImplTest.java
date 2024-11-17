@@ -64,8 +64,8 @@ class TaskServiceImplTest {
         Task task = new Task();
 
         when(userService.getCurrentUser()).thenReturn(user);
-        when(userMapper.map(user)).thenReturn(userDto);
-        when(taskMapper.mapToEntity(taskDto)).thenReturn(task);
+        when(userMapper.userToUserDto(user)).thenReturn(userDto);
+        when(taskMapper.taskDtoToTask(taskDto)).thenReturn(task);
         when(taskRepository.save(task)).thenReturn(task);
 
         Task createdTask = taskServiceImpl.create(taskDto);
@@ -79,7 +79,7 @@ class TaskServiceImplTest {
     void create_ShouldThrowTaskCreationException_WhenTaskCreationFails() {
         TaskDto taskDto = new TaskDto();
 
-        when(taskMapper.mapToEntity(taskDto)).thenReturn(null);
+        when(taskMapper.taskDtoToTask(taskDto)).thenReturn(null);
 
         assertThrows(TaskCreationException.class, () -> taskServiceImpl.create(taskDto));
     }
@@ -99,7 +99,7 @@ class TaskServiceImplTest {
         }
 
         when(taskRepository.save(any(Task.class))).thenReturn(task);
-        when(taskMapper.map(task)).thenReturn(taskDto);
+        when(taskMapper.taskToTaskDto(task)).thenReturn(taskDto);
 
         TaskDto updatedTaskDto = taskServiceImpl.update(taskDto);
 
@@ -145,7 +145,7 @@ class TaskServiceImplTest {
         TaskDto taskDto = new TaskDto();
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
-        when(taskMapper.map(task)).thenReturn(taskDto);
+        when(taskMapper.taskToTaskDto(task)).thenReturn(taskDto);
 
         Optional<TaskDto> foundTask = taskServiceImpl.findById(1L);
 
@@ -192,7 +192,7 @@ class TaskServiceImplTest {
 
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(taskRepository.save(task)).thenReturn(task);
-        when(taskMapper.map(task)).thenReturn(taskDto);
+        when(taskMapper.taskToTaskDto(task)).thenReturn(taskDto);
 
         TaskDto result = taskServiceImpl.changeStatus(1L, newStatus);
 
@@ -220,7 +220,7 @@ class TaskServiceImplTest {
         when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(assignee));
         when(taskRepository.save(task)).thenReturn(task);
-        when(taskMapper.map(task)).thenReturn(taskDto);
+        when(taskMapper.taskToTaskDto(task)).thenReturn(taskDto);
 
         TaskDto result = taskServiceImpl.assignTask(1L, "test@example.com");
 
@@ -270,7 +270,7 @@ class TaskServiceImplTest {
         TaskDto taskDto = new TaskDto();
 
         when(taskRepository.findAll(pageable)).thenReturn(new PageImpl<>(List.of(task)));
-        when(taskMapper.map(task)).thenReturn(taskDto);
+        when(taskMapper.taskToTaskDto(task)).thenReturn(taskDto);
 
         Page<TaskDto> result = taskServiceImpl.findAll(pageable, "");
 

@@ -83,7 +83,7 @@ public class UserServiceImplTest {
         user.setPassword("password");
 
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
-        when(registrationUserMapper.map(userDto)).thenReturn(user);
+        when(registrationUserMapper.registrationUserDtoToUser(userDto)).thenReturn(user);
         when(userRepository.save(user)).thenReturn(user);
 
         User createdUser = userServiceImpl.create(userDto);
@@ -98,7 +98,7 @@ public class UserServiceImplTest {
         User user = new User();
         UserDto userDto = new UserDto();
         when(userRepository.findAll()).thenReturn(List.of(user));
-        when(userMapper.map(user)).thenReturn(userDto);
+        when(userMapper.userToUserDto(user)).thenReturn(userDto);
 
         List<UserDto> result = userServiceImpl.findAll();
 
@@ -125,7 +125,7 @@ public class UserServiceImplTest {
     void create_ShouldThrowUserCreationException_WhenUserCreationFails() {
         RegistrationUserDto userDto = new RegistrationUserDto(null, "test@example.com", "password","ADMIN");
         when(userRepository.findByEmail(userDto.getEmail())).thenReturn(Optional.empty());
-        when(registrationUserMapper.map(userDto)).thenThrow(UserCreationException.class);
+        when(registrationUserMapper.registrationUserDtoToUser(userDto)).thenThrow(UserCreationException.class);
 
         assertThrows(UserCreationException.class, () -> {
             userServiceImpl.create(userDto);

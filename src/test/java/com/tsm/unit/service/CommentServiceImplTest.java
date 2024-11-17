@@ -54,9 +54,9 @@ class CommentServiceImplTest {
 
         when(taskRepository.findById(taskId)).thenReturn(Optional.of(task));
         when(userService.getCurrentUser()).thenReturn(author);
-        when(commentMapper.mapToEntity(commentDto)).thenReturn(comment);
+        when(commentMapper.commentDtoToComment(commentDto)).thenReturn(comment);
         when(commentRepository.save(comment)).thenReturn(savedComment);
-        when(commentMapper.map(savedComment)).thenReturn(commentDto);
+        when(commentMapper.commentToCommentDto(savedComment)).thenReturn(commentDto);
 
         CommentDto result = commentService.addComment(taskId, commentDto);
 
@@ -83,7 +83,7 @@ class CommentServiceImplTest {
         CommentDto commentDto = new CommentDto();
 
         when(commentRepository.findByTaskId(taskId)).thenReturn(List.of(comment));
-        when(commentMapper.map(comment)).thenReturn(commentDto);
+        when(commentMapper.commentToCommentDto(comment)).thenReturn(commentDto);
 
         List<CommentDto> result = commentService.getComments(taskId);
 
@@ -103,7 +103,7 @@ class CommentServiceImplTest {
 
         when(commentRepository.findById(commentId)).thenReturn(Optional.of(existingComment));
         when(commentRepository.save(existingComment)).thenReturn(updatedComment);
-        when(commentMapper.map(updatedComment)).thenReturn(commentDto);
+        when(commentMapper.commentToCommentDto(updatedComment)).thenReturn(commentDto);
 
         CommentDto result = commentService.updateComment(commentId, commentDto);
 

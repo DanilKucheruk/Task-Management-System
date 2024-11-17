@@ -4,28 +4,30 @@ import com.tsm.dto.UserDto;
 import com.tsm.entity.Role;
 import com.tsm.entity.User;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
-@Component
-@RequiredArgsConstructor
-public class UserMapper implements Mapper<User, UserDto>{
-    @Override
-    public UserDto map(User object) {
-        UserDto userDto = new UserDto();
-        userDto.setId(object.getId());
-        userDto.setEmail(object.getEmail());
-        userDto.setPassword(object.getPassword());
-        userDto.setRole(object.getRole().name());
-        return userDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
+
+@Mapper(componentModel = "spring")
+public interface UserMapper {
+
+    UserMapper INSTANCE = Mappers.getMapper(UserMapper.class);
+
+    @Mapping(source = "role", target = "role", qualifiedByName = "roleToString")
+    UserDto userToUserDto(User user);
+
+    @Mapping(source = "role", target = "role", qualifiedByName = "stringToRole")
+    User userDtoToUser(UserDto userDto);
+
+    @Named("roleToString")
+    default String roleToString(Role role) {
+        return role.name();
     }
-    
-    public User mapToEntity(UserDto userDto){
-        User user = new User();
-        user.setId(userDto.getId());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword());   
-        user.setRole(Role.valueOf(userDto.getRole())); 
-        return user;
+
+    @Named("stringToRole")
+    default Role stringToRole(String role) {
+        return Role.valueOf(role);
     }
 }

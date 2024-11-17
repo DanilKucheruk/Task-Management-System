@@ -67,7 +67,7 @@ public class UserServiceImpl implements UserService {
         }
         return Optional.of(userDto)
                 .map(dto -> {
-                    return registrationUserMapper.map(dto);
+                    return registrationUserMapper.registrationUserDtoToUser(dto);
                 })
                 .map(userRepository::save)
                 .orElseThrow(() -> new UserCreationException("Failed to create user"));
@@ -77,7 +77,7 @@ public class UserServiceImpl implements UserService {
     public Optional<UserDto> findById(Long id) {
         LOGGER.debug("Request to find user by id: {}", id);
         return userRepository.findById(id)
-                .map(userMapper::map)
+                .map(userMapper::userToUserDto)
                 .or(() -> {
                     throw new UserNotFoundException("User with id " + id + " not found");
                 });
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
         LOGGER.debug("Request to find all users");
         return userRepository.findAll()
                 .stream()
-                .map(userMapper::map)
+                .map(userMapper::userToUserDto)
                 .toList();
     }
 
