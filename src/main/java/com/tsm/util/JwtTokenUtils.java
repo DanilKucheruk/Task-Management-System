@@ -18,6 +18,29 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+/**
+ * Utility class for managing JWT.
+ * 
+ * <p>This service provides methods for generating, validating, and extracting data
+ * from JWTs. It uses the `io.jsonwebtoken` library for token manipulation and ensures
+ * secure handling with HMAC SHA-256 signing.</p>
+ * 
+ * <p><b>Key Features:</b></p>
+ * <ul>
+ *   <li>Generate JWTs with custom claims and expiration time.</li>
+ *   <li>Extract claims, including username and roles, from a token.</li>
+ *   <li>Validate tokens against user details and expiration.</li>
+ * </ul>
+ * 
+ * <p>The secret key and expiration time are injected from application properties.</p>
+ * 
+ * <p><b>Annotations:</b></p>
+ * <ul>
+ *   <li>{@link Service}: Marks the class as a Spring service component.</li>
+ *   <li>{@link Value}: Injects values from application properties.</li>
+ * </ul>
+ */
+
 @Service
 public class JwtTokenUtils {
     @Value("${application.security.jwt.secret-key}")
