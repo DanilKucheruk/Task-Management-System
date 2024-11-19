@@ -2,14 +2,29 @@
 
 ## Описание
 
-## Требования
+# Инфраструктурные требования
 
-- **Java 17+**
-- **Spring Boot 3.3.2**
-- **PostgreSQL 42.5.0**
-- **JWT 0.11.2**
-- **MapStruct 1.6.3**
-- **Maven 3.8.1+**
+## 1. **PostgreSQL**
+   - **Version**: 17.1
+   - **Docker Image**: `postgres:17.1`
+
+## 2. **Spring Boot**
+   - **Version**: 3.3.2
+
+## 3. **Java**
+   - **Version**: 17
+
+## 4. **Docker**
+   - **Version**: Any version compatible with Docker Compose files
+
+## 5. **Dependencies Versions**:
+   - **PostgreSQL JDBC Driver**: 42.7.4
+   - **JWT**: 0.11.2
+   - **Springdoc OpenAPI**: 2.3.0
+   - **SLF4J**: 2.0.13
+   - **MapStruct**: 1.6.3
+   - **Lombok**: 1.18.34
+   - **JUnit**: 5.8.2 
 
 **Task Management System** – это RESTful API для управления задачами, разработанное на **Java** с использованием **Spring Boot**. Система позволяет пользователям создавать, редактировать, удалять и просматривать задачи и комментарии к ним. Для обеспечения безопасности используется **JWT-аутентификация**, а данные хранятся в базе данных **PostgreSQL**. API документировано с помощью **Swagger UI**.
 
